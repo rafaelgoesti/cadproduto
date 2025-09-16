@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Produto - Sistema de Cadastro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Editar Produto</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="form-section" style="max-width: 800px; margin: 0 auto;">
+            <h2>Editar: {{ produto.nome }}</h2>
+            <form action="{{ url_for('principal.editar_produto', id_produto=produto.id) }}" method="POST" enctype="multipart/form-data">
+                <div class="edit-form-container">
+                    <div class="edit-form-left">
+                        <div class="form-group">
+                            <label for="nome">Nome do Produto</label>
+                            <input type="text" id="nome" name="nome" value="{{ produto.nome }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="descricao">Descrição</label>
+                            <textarea id="descricao" name="descricao" required>{{ produto.descricao }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="preco">Preço (R$)</label>
+                            <input type="number" id="preco" name="preco" value="{{ produto.preco }}" min="0" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="categoria">Categoria</label>
+                            <select id="categoria" name="categoria" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option value="eletronicos" {% if produto.categoria == 'eletronicos' %}selected{% endif %}>Eletrônicos</option>
+                                <option value="roupas" {% if produto.categoria == 'roupas' %}selected{% endif %}>Roupas</option>
+                                <option value="livros" {% if produto.categoria == 'livros' %}selected{% endif %}>Livros</option>
+                                <option value="esportes" {% if produto.categoria == 'esportes' %}selected{% endif %}>Esportes</option>
+                                <option value="casa" {% if produto.categoria == 'casa' %}selected{% endif %}>Casa e Decoração</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="edit-form-right">
+                        <div class="form-group">
+                            <label for="imagem">Alterar Imagem (opcional)</label>
+                            <input type="file" id="imagem" name="imagem" accept="image/*">
+                        </div>
+                        <div class="edit-image-preview">
+                            {% if produto.nome_imagem %}
+                                <img id="imagePreview" src="{{ url_for('static', filename='uploads/' + produto.nome_imagem) }}" alt="{{ produto.nome }}">
+                            {% else %}
+                                <img id="imagePreview" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlMWUxZTEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmaWxsPSIjOTk5Ij5Qcm9kdXRvPC90ZXh0Pjwvc3ZnPg==" alt="{{ produto.nome }}">
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <a href="{{ url_for('principal.pagina_inicial') }}" class="btn-cancel" style="text-decoration: none; display: inline-block; text-align: center;">Cancelar</a>
+                    <button type="submit" class="btn-confirm">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Preview da imagem
+        document.getElementById('imagem').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>

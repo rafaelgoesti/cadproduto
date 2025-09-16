@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cadastro de Produtos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Sistema de Cadastro de Produtos</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <section class="form-section">
+                <h2>Cadastrar Produto</h2>
+                <form action="{{ url_for('principal.adicionar_produto') }}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="nome">Nome do Produto</label>
+                        <input type="text" id="nome" name="nome" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descricao">Descrição</label>
+                        <textarea id="descricao" name="descricao" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="preco">Preço (R$)</label>
+                        <input type="number" id="preco" name="preco" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categoria">Categoria</label>
+                        <select id="categoria" name="categoria" required>
+                            <option value="">Selecione uma categoria</option>
+                            <option value="eletronicos">Eletrônicos</option>
+                            <option value="roupas">Roupas</option>
+                            <option value="livros">Livros</option>
+                            <option value="esportes">Esportes</option>
+                            <option value="casa">Casa e Decoração</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="imagem">Imagem do Produto</label>
+                        <input type="file" id="imagem" name="imagem" accept="image/*">
+                        <div class="image-preview">
+                            <img id="imagePreview" src="#" alt="Preview da imagem" style="display: none;">
+                        </div>
+                    </div>
+
+                    <button type="submit">Cadastrar Produto</button>
+                </form>
+            </section>
+
+            <section class="products-section">
+                <h2>Produtos Cadastrados</h2>
+                <div class="products-grid">
+                    {% if produtos %}
+                        {% for produto in produtos %}
+                        <div class="product-card">
+                            <div class="product-image">
+                                {% if produto.nome_imagem %}
+                                    <img src="{{ url_for('static', filename='uploads/' + produto.nome_imagem) }}" alt="{{ produto.nome }}">
+                                {% else %}
+                                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlMWUxZTEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmaWxsPSIjOTk5Ij5Qcm9kdXRvPC90ZXh0Pjwvc3ZnPg==" alt="{{ produto.nome }}">
+                                {% endif %}
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">{{ produto.nome }}</div>
+                                <div class="product-price">R$ {{ "%.2f"|format(produto.preco) }}</div>
+                                <div class="product-category">{{ produto.categoria|title }}</div>
+                                <div class="product-description">{{ produto.descricao }}</div>
+                                <div class="product-actions">
+                                    <button class="btn-edit" onclick="openEditModal({{ produto.id }}, '{{ produto.nome }}', '{{ produto.descricao }}', {{ produto.preco }}, '{{ produto.categoria }}', '{{ produto.nome_imagem or '' }}')">Editar</button>
+                                    <button class="btn-delete" onclick="openDeleteModal({{ produto.id }}, '{{ produto.nome }}')">Excluir</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-products">
+                            <h3>Nenhum produto cadastrado</h3>
+                            <p>Cadastre seu primeiro produto usando o formulário ao lado.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modal de Exclusão -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirmar Exclusão</h2>
+                <span class="close" onclick="closeModal('deleteModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o produto <strong id="deleteProductName"></strong>?</p>
+                <p>Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancelar</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn-confirm">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Editar Produto</h2>
+                <span class="close" onclick="closeModal('editModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editForm" method="POST" enctype="multipart/form-data">
+                    <div class="edit-form-container">
+                        <div class="edit-form-left">
+                            <div class="form-group">
+                                <label for="editNome">Nome do Produto</label>
+                                <input type="text" id="editNome" name="nome" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editDescricao">Descrição</label>
+                                <textarea id="editDescricao" name="descricao" required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editPreco">Preço (R$)</label>
+                                <input type="number" id="editPreco" name="preco" min="0" step="0.01" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editCategoria">Categoria</label>
+                                <select id="editCategoria" name="categoria" required>
+                                    <option value="">Selecione uma categoria</option>
+                                    <option value="eletronicos">Eletrônicos</option>
+                                    <option value="roupas">Roupas</option>
+                                    <option value="livros">Livros</option>
+                                    <option value="esportes">Esportes</option>
+                                    <option value="casa">Casa e Decoração</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="edit-form-right">
+                            <div class="form-group">
+                                <label for="editImagem">Alterar Imagem (opcional)</label>
+                                <input type="file" id="editImagem" name="imagem" accept="image/*">
+                            </div>
+                            <div class="edit-image-preview">
+                                <img id="editImagePreview" src="#" alt="Preview da imagem">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" onclick="closeModal('editModal')">Cancelar</button>
+                        <button type="submit" class="btn-confirm">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    
+</body>
+</html>
