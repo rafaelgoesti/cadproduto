@@ -12,6 +12,11 @@ class Configuracao:
     SQLALCHEMY_DATABASE_URI = DATABASE_URL or "sqlite:///bancoproduto.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    PASTA_UPLOADS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+    # Configuração da pasta de uploads
+    # No Railway, usar /tmp para uploads temporários
+    if os.environ.get('RAILWAY_ENVIRONMENT'):
+        PASTA_UPLOADS = '/tmp/uploads'
+    else:
+        PASTA_UPLOADS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
 
     TAMANHO_MAXIMO = 5 * 1024 * 1024 # Mb

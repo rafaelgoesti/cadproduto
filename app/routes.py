@@ -18,24 +18,34 @@ def upload_file(filename):
 # Rota para Criar um Produto
 @rotas_pricipal.route("/adicionar", methods=["post"])
 def adicionar_produto():
-    nome = request.form["nome"]
-    descricao = request.form["descricao"]
-    preco = request.form["preco"]
-    categoria = request.form["categoria"]
-    arquivo = request.files.get("imagem")
+    try:
+        nome = request.form["nome"]
+        descricao = request.form["descricao"]
+        preco = request.form["preco"]
+        categoria = request.form["categoria"]
+        arquivo = request.files.get("imagem")
 
-    nome_imagem = None
-    if arquivo and arquivo.filename != "":
-        filename = secure_filename(arquivo.filename)
-        caminho = os.path.join(current_app.config['PASTA_UPLOADS'], filename)
-        arquivo.save(caminho)
-        nome_imagem = filename
+        nome_imagem = None
+        if arquivo and arquivo.filename != "":
+            # Garantir que a pasta de uploads existe
+            pasta_uploads = current_app.config['PASTA_UPLOADS']
+            os.makedirs(pasta_uploads, exist_ok=True)
+            
+            filename = secure_filename(arquivo.filename)
+            caminho = os.path.join(pasta_uploads, filename)
+            arquivo.save(caminho)
+            nome_imagem = filename
 
-    produto = Produto(nome=nome, descricao=descricao, preco=preco, categoria=categoria, nome_imagem=nome_imagem)
-    db.session.add(produto)
-    db.session.commit()
+        produto = Produto(nome=nome, descricao=descricao, preco=preco, categoria=categoria, nome_imagem=nome_imagem)
+        db.session.add(produto)
+        db.session.commit()
 
-    return redirect(url_for("principal.pagina_inicial"))
+        return redirect(url_for("principal.pagina_inicial"))
+    
+    except Exception as e:
+        current_app.logger.error(f"Erro ao adicionar produto: {e}")
+        db.session.rollback()
+        return f"Erro ao adicionar produto: {e}", 500
 
 # Rota para Atualizar um Produto
 @rotas_pricipal.route("/editar/<int:id_produto>", methods=["GET", "POST"])
@@ -43,20 +53,30 @@ def editar_produto(id_produto):
     produto = Produto.query.get_or_404(id_produto)
 
     if request.method == "POST":
-        produto.nome = request.form["nome"]
-        produto.descricao = request.form["descricao"]
-        produto.preco = request.form["preco"]
-        produto.categoria = request.form["categoria"]
+        try:
+            produto.nome = request.form["nome"]
+            produto.descricao = request.form["descricao"]
+            produto.preco = request.form["preco"]
+            produto.categoria = request.form["categoria"]
 
-        arquivo = request.files.get("imagem")
-        if arquivo and arquivo.filename != "":
-            filename = secure_filename(arquivo.filename)
-            caminho = os.path.join(current_app.config['PASTA_UPLOADS'], filename)
-            arquivo.save(caminho)
-            produto.nome_imagem = filename
+            arquivo = request.files.get("imagem")
+            if arquivo and arquivo.filename != "":
+                # Garantir que a pasta de uploads existe
+                pasta_uploads = current_app.config['PASTA_UPLOADS']
+                os.makedirs(pasta_uploads, exist_ok=True)
+                
+                filename = secure_filename(arquivo.filename)
+                caminho = os.path.join(pasta_uploads, filename)
+                arquivo.save(caminho)
+                produto.nome_imagem = filename
 
-        db.session.commit()
-        return redirect(url_for("principal.pagina_inicial"))
+            db.session.commit()
+            return redirect(url_for("principal.pagina_inicial"))
+        
+        except Exception as e:
+            current_app.logger.error(f"Erro ao editar produto: {e}")
+            db.session.rollback()
+            return f"Erro ao editar produto: {e}", 500
 
     return render_template("editar.html", produto=produto)
 
