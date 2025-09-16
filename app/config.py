@@ -13,8 +13,8 @@ class Configuracao:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Configuração da pasta de uploads
-    # No Railway, usar /tmp para uploads temporários
-    if os.environ.get('RAILWAY_ENVIRONMENT'):
+    # No Railway/produção, usar /tmp para uploads temporários
+    if os.environ.get('PORT') or os.environ.get('RAILWAY_ENVIRONMENT'):
         PASTA_UPLOADS = '/tmp/uploads'
     else:
         PASTA_UPLOADS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')

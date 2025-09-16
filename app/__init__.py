@@ -12,7 +12,8 @@ def criar_aplicacao():
     db.init_app(app)
     migrate.init_app(app, db)
 
-    #os.makedirs(app.config["PASTA_UPLOAD"], exist_ok=True)
+    # Criar pasta de uploads se não existir
+    os.makedirs(app.config["PASTA_UPLOADS"], exist_ok=True)
 
     app.register_blueprint(rotas_pricipal)
 

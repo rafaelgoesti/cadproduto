@@ -11,9 +11,20 @@ def pagina_inicial():
     produtos = Produto.query.order_by(Produto.criado_em.desc()).all()
     return render_template("index.html", produtos=produtos)
 
-@rotas_pricipal.route("/static/upload/<filename>")
+@rotas_pricipal.route("/static/uploads/<filename>")
 def upload_file(filename):
-    return send_from_directory(current_app.config['PASTA_UPLOADS'], filename)
+    try:
+        return send_from_directory(current_app.config['PASTA_UPLOADS'], filename)
+    except FileNotFoundError:
+        # Se o arquivo não for encontrado, retornar uma imagem padrão ou erro 404
+        return "Imagem não encontrada", 404
+
+@rotas_pricipal.route("/uploads/<filename>")
+def serve_upload(filename):
+    try:
+        return send_from_directory(current_app.config['PASTA_UPLOADS'], filename)
+    except FileNotFoundError:
+        return "Imagem não encontrada", 404
 
 # Rota para Criar um Produto
 @rotas_pricipal.route("/adicionar", methods=["post"])
