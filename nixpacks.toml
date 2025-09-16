@@ -1,0 +1,14 @@
+[variables]
+PYTHONPATH = "/app"
+
+[phases.setup]
+nixPkgs = ["python312", "pip"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[phases.build]
+cmds = ["echo 'Build completed'"]
+
+[start]
+cmd = "python init_railway.py && gunicorn run:app --bind 0.0.0.0:$PORT"
