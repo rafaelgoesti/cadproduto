@@ -1,12 +1,5 @@
-[build]
-builder = "NIXPACKS"
-
 [deploy]
 healthcheckPath = "/"
-healthcheckTimeout = 100
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
-
-[env]
-PYTHONPATH = "/app"
-PORT = "5000"
+restartPolicyMaxRetries = 3
